@@ -192,16 +192,51 @@ impl<'a, M: GuestMemory, T: RingAccess> SplitQueueRing<'a, M, T> {
             .checked_add(self.ring.len as GuestUsize)
             .unwrap()
     }
-
-    /// Return a reference to the idx field.
-    pub fn idx(&self) -> &Ref<'a, M, u16> {
-        &self.idx
+    
+    /// Load the value of the `flags` field.
+    pub fn load_flags(&self) -> u16 {
+        u16::from_le(self.flags.load())
     }
 
-    /// Return a reference to the ring field.
-    pub fn ring(&self) -> &ArrayRef<'a, M, T> {
-        &self.ring
+    /// Store the `flags` field.
+    pub fn store_flags(&self, val: u16) {
+        self.flags.store(u16::to_le(val))
     }
+
+    /// Load the value of the `idx` field.
+    pub fn load_idx(&self) -> u16 {
+        u16::from_le(self.idx.load())
+    }
+
+    /// Store the `idx` field.
+    pub fn store_idx(&self, val: u16) {
+        self.idx.store(u16::to_le(val))
+    }
+
+    /// Load a ring entry at `index`.
+    pub fn load_ring_entry(&self, index: usize) -> Result<T, MockError> {
+        self.ring
+            .ref_at(index)
+            .map(|r| T::from_le(r.load()))
+    }
+
+    /// Store a ring entry at `index`.
+    pub fn store_ring_entry(&self, index: usize, val: T) -> Result<(), MockError> {
+        self.ring
+            .ref_at(index)
+            .map(|r| r.store(val.to_le()))
+    }
+
+    /// Load the value of the event field.
+    pub fn load_event(&self) -> u16 {
+        u16::from_le(self.event.load())
+    }
+
+    /// Store the event field.
+    pub fn store_event(&self, val: u16) {
+        self.event.store(u16::to_le(val))
+    }
+    
 }
 
 /// The available ring is used by the driver to offer buffers to the device.
