@@ -117,9 +117,37 @@ impl<'a, M: GuestMemory, T: ByteValued> ArrayRef<'a, M, T> {
     }
 }
 
+/// Trait for converting queue values to and from little-endian representation.
+pub trait RingAccess: ByteValued + Copy {
+    /// Convert from host to little-endian.
+    fn to_le(self) -> Self;
+    /// Convert from little-endian to host.
+    fn from_le(val: Self) -> Self;
+}
+
+impl RingAccess for u16 {
+    fn to_le(self) -> Self {
+        u16::to_le(self)
+    }
+
+    fn from_le(val: Self) -> Self {
+        u16::from_le(val)
+    }
+}
+
+impl RingAccess for VirtqUsedElem {
+    fn to_le(self) -> Self {
+        self
+    }
+
+    fn from_le(val: Self) -> Self {
+        val
+    }
+}
+
 /// Represents a virtio queue ring. The only difference between the used and available rings,
 /// is the ring element type.
-pub struct SplitQueueRing<'a, M, T: ByteValued> {
+pub struct SplitQueueRing<'a, M, T: RingAccess> {
     flags: Ref<'a, M, u16>,
     // The value stored here should more precisely be a `Wrapping<u16>`, but that would require a
     // `ByteValued` impl for this type, which is not provided in vm-memory. Implementing the trait
@@ -131,7 +159,7 @@ pub struct SplitQueueRing<'a, M, T: ByteValued> {
     event: Ref<'a, M, u16>,
 }
 
-impl<'a, M: GuestMemory, T: ByteValued> SplitQueueRing<'a, M, T> {
+impl<'a, M: GuestMemory, T: RingAccess> SplitQueueRing<'a, M, T> {
     /// Create a new `SplitQueueRing` instance
     pub fn new(mem: &'a M, base: GuestAddress, len: u16) -> Self {
         let event_addr = base
