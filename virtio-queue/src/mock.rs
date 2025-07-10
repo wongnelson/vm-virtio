@@ -192,7 +192,7 @@ impl<'a, M: GuestMemory, T: RingAccess> SplitQueueRing<'a, M, T> {
             .checked_add(self.ring.len as GuestUsize)
             .unwrap()
     }
-    
+
     /// Load the value of the `flags` field.
     pub fn load_flags(&self) -> u16 {
         u16::from_le(self.flags.load())
@@ -215,16 +215,12 @@ impl<'a, M: GuestMemory, T: RingAccess> SplitQueueRing<'a, M, T> {
 
     /// Load a ring entry at `index`.
     pub fn load_ring_entry(&self, index: usize) -> Result<T, MockError> {
-        self.ring
-            .ref_at(index)
-            .map(|r| T::from_le(r.load()))
+        self.ring.ref_at(index).map(|r| T::from_le(r.load()))
     }
 
     /// Store a ring entry at `index`.
     pub fn store_ring_entry(&self, index: usize, val: T) -> Result<(), MockError> {
-        self.ring
-            .ref_at(index)
-            .map(|r| r.store(val.to_le()))
+        self.ring.ref_at(index).map(|r| r.store(val.to_le()))
     }
 
     /// Load the value of the event field.
@@ -236,7 +232,6 @@ impl<'a, M: GuestMemory, T: RingAccess> SplitQueueRing<'a, M, T> {
     pub fn store_event(&self, val: u16) {
         self.event.store(u16::to_le(val))
     }
-    
 }
 
 /// The available ring is used by the driver to offer buffers to the device.
